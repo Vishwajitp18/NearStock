@@ -1,0 +1,171 @@
+@import './tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-body);
+  background-image: 
+    radial-gradient(circle at 50% -20%, rgba(45, 226, 198, 0.12) 0%, transparent 55%),
+    linear-gradient(to right, rgba(23, 53, 48, 0.3) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 53, 48, 0.3) 1px, transparent 1px);
+  background-size: 100% 100%, 36px 36px, 36px 36px;
+  background-attachment: fixed;
+}
+
+html.light body {
+  background-image: 
+    radial-gradient(circle at 50% -20%, rgba(15, 155, 132, 0.08) 0%, transparent 55%),
+    linear-gradient(to right, rgba(210, 226, 220, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(210, 226, 220, 0.6) 1px, transparent 1px);
+}
+
+/* Leaflet Map styling - Real Google Maps Cartography */
+.leaflet-container {
+  background: #e5e3df !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  border-radius: 1rem;
+}
+
+/* Authentic Google Maps Tile Rendering */
+.leaflet-tile-pane {
+  filter: none !important;
+}
+
+/* Custom Google Maps Pins */
+.custom-google-pin {
+  background: transparent;
+  border: none;
+}
+
+.google-pin-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.google-pin-wrapper:hover,
+.google-pin-wrapper.selected {
+  transform: scale(1.15) translateY(-4px);
+  z-index: 9999 !important;
+}
+
+/* Google Maps Floating Price Pill */
+.google-price-pill {
+  background: #ffffff;
+  color: #202124;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(60,64,67,0.3), 0 1px 2px rgba(60,64,67,0.15);
+  border: 1px solid rgba(0,0,0,0.08);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 2px;
+}
+
+.google-price-pill.cheapest {
+  background: #0f9d58;
+  color: #ffffff;
+  border-color: #0d8048;
+}
+
+.google-price-pill.selected {
+  background: #1a73e8;
+  color: #ffffff;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 10px rgba(26,115,232,0.6);
+}
+
+/* Google Maps Teardrop SVG */
+.google-teardrop {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Google Maps GPS Accuracy Pulsing Dot */
+.google-gps-marker {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-gps-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: rgba(66, 133, 244, 0.35);
+  animation: google-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.google-gps-core {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: #1a73e8;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+@keyframes google-pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* Custom Google Maps Popup styling */
+.leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #202124 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(60,64,67,0.3) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: #ffffff !important;
+  box-shadow: 0 3px 10px rgba(60,64,67,0.3) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+

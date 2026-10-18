@@ -1,0 +1,29 @@
+:root {
+  /* Dark mode is default */
+  --color-bg: #07110f;
+  --color-surface: #0c1b18;
+  --color-surface-hover: #122723;
+  --color-border: #173530;
+  --color-border-subtle: #132c28;
+  --color-accent: #2de2c6;
+  --color-accent-dim: rgba(45, 226, 198, 0.12);
+  --color-accent-glow: rgba(45, 226, 198, 0.3);
+  --color-heading: #e8f5f1;
+  --color-body: #8fa8a1;
+  --color-muted: #526e67;
+}
+
+html.light {
+  --color-bg: #f4f8f7;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f0f6f4;
+  --color-border: #d2e2dc;
+  --color-border-subtle: #e3ede9;
+  --color-accent: #0f9b84;
+  --color-accent-dim: rgba(15, 155, 132, 0.12);
+  --color-accent-glow: rgba(15, 155, 132, 0.25);
+  --color-heading: #0c201c;
+  --color-body: #324c46;
+  --color-muted: #64817a;
+}
+

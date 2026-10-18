@@ -1,0 +1,376 @@
+openapi: 3.0.3
+info:
+  title: Hyperlocal Retail Inventory Platform API
+  version: 1.0.0
+  description: Backend API for Customer app, Shopkeeper app, and Admin panel with real-time stock and PostGIS geo search.
+servers:
+  - url: /api/v1
+    description: API v1 Endpoint
+
+paths:
+  /auth/send-otp:
+    post:
+      summary: Send OTP to phone
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  example: "+919888888881"
+                role:
+                  type: string
+                  enum: [customer, shopkeeper, admin]
+      responses:
+        200:
+          description: OTP sent successfully
+
+  /auth/verify-otp:
+    post:
+      summary: Verify OTP and receive JWT access/refresh tokens
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, otp]
+              properties:
+                phone:
+                  type: string
+                  example: "+919888888881"
+                otp:
+                  type: string
+                  example: "123456"
+                name:
+                  type: string
+                role:
+                  type: string
+                  enum: [customer, shopkeeper, admin]
+      responses:
+        200:
+          description: Verified
+
+  /me:
+    get:
+      summary: Get current authenticated user profile
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: User profile and associated shops
+
+  /search:
+    get:
+      summary: Main "Where is this item near me?" search with PostGIS geo queries and ranking
+      tags: [Customer Search]
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            example: "Amul butter 500g"
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+            example: 12.9716
+        - in: query
+          name: lng
+          required: true
+          schema:
+            type: number
+            example: 77.5946
+        - in: query
+          name: radius
+          schema:
+            type: integer
+            default: 3000
+            description: Search radius in meters
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [nearest, fastest, cheapest, best]
+            default: best
+      responses:
+        200:
+          description: List of nearby shops carrying the item
+
+  /products/{id}/shops:
+    get:
+      summary: Find nearby shops stocking a specific product
+      tags: [Customer Search]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: lng
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: radius
+          schema:
+            type: integer
+            default: 3000
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [nearest, fastest, cheapest, best]
+      responses:
+        200:
+          description: Shops stocking this product
+
+  /shops/nearby:
+    get:
+      summary: Browse shops on the map within radius
+      tags: [Shops]
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: lng
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: radius
+          schema:
+            type: integer
+            default: 5000
+      responses:
+        200:
+          description: Nearby shops
+
+  /shops/{id}:
+    get:
+      summary: Shop details, timings, and live open status
+      tags: [Shops]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Shop details
+
+  /shops/{id}/inventory:
+    get:
+      summary: Get inventory items in a shop
+      tags: [Shops]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: q
+          schema:
+            type: string
+      responses:
+        200:
+          description: Items list
+
+  /shops:
+    post:
+      summary: Register a new shop (starts as pending)
+      tags: [Shopkeeper]
+      security:
+        - BearerAuth: []
+      responses:
+        201:
+          description: Shop registered
+
+  /shops/{id}:
+    patch:
+      summary: Edit shop details, location, and open/closed toggle
+      tags: [Shopkeeper]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Shop updated
+
+  /shops/{id}/hours:
+    put:
+      summary: Set weekday operating hours
+      tags: [Shopkeeper]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Shop hours updated
+
+  /shops/{id}/inventory:
+    post:
+      summary: Add item with price and quantity
+      tags: [Shopkeeper Inventory]
+      security:
+        - BearerAuth: []
+      responses:
+        201:
+          description: Item added
+
+  /shops/{id}/inventory/{itemId}:
+    patch:
+      summary: Update price or quantity
+      tags: [Shopkeeper Inventory]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Item updated
+
+  /shops/{id}/inventory/{itemId}/adjust:
+    post:
+      summary: Atomic +/- stock adjustment with movement audit reason (Section 8)
+      tags: [Shopkeeper Inventory]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [change_qty, reason]
+              properties:
+                change_qty:
+                  type: integer
+                  example: 10
+                reason:
+                  type: string
+                  enum: [restock, sale, manual_adjust, return, order, expired]
+      responses:
+        200:
+          description: Stock adjusted
+
+  /shops/{id}/inventory/bulk:
+    post:
+      summary: Bulk update inventory via JSON or CSV upload
+      tags: [Shopkeeper Inventory]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Bulk update result
+
+  /shops/{id}/alerts:
+    get:
+      summary: Get low stock alerts for shop
+      tags: [Shopkeeper]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Low stock items
+
+  /shops/{id}/analytics:
+    get:
+      summary: Shopkeeper demand analytics (top searched items nearby)
+      tags: [Shopkeeper]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Analytics data
+
+  /admin/shops:
+    get:
+      summary: Admin review queue of shops
+      tags: [Admin]
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, suspended, rejected]
+      responses:
+        200:
+          description: Shops list
+
+  /admin/shops/{id}/status:
+    patch:
+      summary: Approve, reject, or suspend a shop
+      tags: [Admin]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, approved, suspended, rejected]
+                reason:
+                  type: string
+      responses:
+        200:
+          description: Status updated
+
+  /admin/products/merge:
+    post:
+      summary: Merge duplicate products and update inventory references
+      tags: [Admin]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Products merged
+
+  /orders:
+    post:
+      summary: Place order and reserve stock atomically
+      tags: [Orders]
+      security:
+        - BearerAuth: []
+      responses:
+        201:
+          description: Order created
+    get:
+      summary: List customer or shop orders
+      tags: [Orders]
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Orders list
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+

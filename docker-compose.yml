@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: retail-postgis
+    restart: always
+    environment:
+      POSTGRES_DB: retail
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d retail"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: retail-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.11
+    container_name: retail-meilisearch
+    restart: always
+    environment:
+      MEILI_MASTER_KEY: masterKey
+      MEILI_ENV: development
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilidata:/meili_data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: retail-api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/retail
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: hyperlocal_access_secret_key_super_secure_2026_jwt
+      JWT_REFRESH_SECRET: hyperlocal_refresh_secret_key_super_secure_2026_jwt
+      MEILI_HOST: http://meilisearch:7700
+      MEILI_KEY: masterKey
+      ROUTING_PROVIDER: osrm
+      OSRM_URL: http://router.project-osrm.org
+    ports:
+      - "4000:4000"
+
+volumes:
+  pgdata:
+  redisdata:
+  meilidata:
+
