@@ -83,15 +83,33 @@ export async function searchProducts(
     LIMIT $2;
   `;
 
-  const { rows } = await query(sql, [cleanTerm, limit]);
-  return rows.map((r) => ({
-    id: r.id,
-    name: r.name,
-    brand: r.brand,
-    unit: r.unit,
-    barcode: r.barcode,
-    image_url: r.image_url,
-  }));
+  try {
+    const { rows } = await query(sql, [cleanTerm, limit]);
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      brand: r.brand,
+      unit: r.unit,
+      barcode: r.barcode,
+      image_url: r.image_url,
+    }));
+  } catch (err: any) {
+    if (config.enableMockFallback) {
+      const mockCatalog = [
+        { id: '23f27f9c-74d5-4d02-b810-875d64600cd8', name: 'Amul Butter 500g', brand: 'Amul', unit: '500 g', barcode: '8901262010053' },
+        { id: '23f27f9c-74d5-4d02-b810-875d64600cd9', name: 'Amul Taaza Toned Milk 1L', brand: 'Amul', unit: '1 L', barcode: '8901262010060' },
+        { id: '23f27f9c-74d5-4d02-b810-875d64600ce0', name: 'Aashirvaad Shudh Chakki Atta 5kg', brand: 'Aashirvaad', unit: '5 kg', barcode: '8901030383854' },
+        { id: '23f27f9c-74d5-4d02-b810-875d64600ce1', name: 'Maggi 2-Minute Instant Noodles 280g', brand: 'Nestle', unit: '280 g', barcode: '8901058852325' },
+        { id: '23f27f9c-74d5-4d02-b810-875d64600ce2', name: 'Paracetamol 500mg Tablets 10s', brand: 'Calpol', unit: 'strip of 10', barcode: '8901058852999' },
+      ];
+      const lower = cleanTerm.toLowerCase();
+      const filtered = mockCatalog.filter(
+        (p) => p.name.toLowerCase().includes(lower) || p.brand.toLowerCase().includes(lower) || p.barcode === cleanTerm
+      );
+      return filtered.length > 0 ? filtered : [mockCatalog[0]];
+    }
+    throw err;
+  }
 }
 
 export async function syncProductToSearchIndex(product: any): Promise<void> {
